@@ -39,7 +39,7 @@ void pause() {
 }
 
 //function to check if a file exists
-bool fileCheck(const std::string& filename) {
+bool fileCheck(const string& filename) {
 
 	//opens file name specified
 	ifstream input_file(filename);
@@ -132,25 +132,25 @@ void generateEnemy(int x) {
 void generateCard(int cardn) {
 
 	//generates random number to determine cardtype between 0-2
-	temp = rand() % 3;
+	temp2 = rand() % 3;
 
 	//sets cardtype, 0=Damage,1=Heal,2=Debuff
-	playerCardsArray[cardn][0] = temp;
+	playerCardsArray[cardn][0] = temp2;
 
 	//switch to determine card type, 0-1 for heal/damage and 2 for debuffs
-	switch (temp) {
+	switch (temp2) {
 	case 0:
 	case 1:
 		//generates number for heal or damage value between 1-10
-		temp = rand() % 10 + 1;
+		temp2 = rand() % 10 + 1;
 		//saves heal or damage value to card number
-		playerCardsArray[cardn][1] = temp;
+		playerCardsArray[cardn][1] = temp2;
 		break;
 	case 2:
 		//generates debuff id between 0-1
-		temp = rand() % 2;
+		temp2 = rand() % 2;
 		//saves debuff id to card number
-		playerCardsArray[cardn][1] = temp;
+		playerCardsArray[cardn][1] = temp2;
 		break;
 	}
 
