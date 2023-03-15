@@ -225,8 +225,9 @@ void playerCombat(int cardn) {
 //primary function used to handle combat, enemy/player attacks
 void combat() {
 
-	//reseting outputString
+	//reseting outputString and temp
 	outputString = "";
+	temp = 0;
 
 	//while loop that continously prompts user for input until they enter a valid option
 	bool validInput = false;
