@@ -275,8 +275,8 @@ void combat() {
 		turnCounter = 0;
 	}
 
-	//regenerates player card that was used
-	generateCard(temp);
+	//regenerates player card that was used subtracting 1 to align with array values
+	generateCard(temp - 1);
 	//regenerates enemy card by passing value 1
 	generateEnemy(1);
 
