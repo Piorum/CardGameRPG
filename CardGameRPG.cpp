@@ -9,7 +9,7 @@
 //rewrote without "using namepsace std;" to improve scalability
 //using namespace std;
 
-
+//notes
 //Note for Computer Science I CSC1060C05 and myself tbh-------------------------------
 // I do not plan to finish all of what is listed in my notes by the end of the semester most of these notes I'm leaving for later the
 // plan is to continue working on this going forward and keep reiterating as I learn new things so I can see how it changes over time.
@@ -42,7 +42,6 @@
 //  -- at this point the "game" should be finished and running well and next should be making the visual interface
 //  -- start developing a structure to make use of graphics APIs to make a GUI - using DirectX12 is something i'm interested in
 //------------------------------------------------------------------------------------
-
 
 //creating global variables/arrays------------------------------------------------------------------------------------------------
 //temp variables for storing random values
@@ -111,6 +110,7 @@ void load();
 void generateEnemy();
 void generateCard(int cardArray[][3], int cardn);
 //gameplay functions
+void removeCard(int cardArray[][3], int cardn);
 void drawCard(int cardArray[][3]);
 void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2]);
 //combat functions
@@ -179,8 +179,8 @@ std::string tolower(std::string inputString) {
 
 	//finds length of string and creates a loop to check every values
 	for (i = 0; i < std::size(inputString); i++) {
-		//checking if the value is in range of uppercase
-		if (inputString[i] < 90) {
+		//checking if the value is in range of uppercase letters
+		if (inputString[i] < 90 && inputString[i] > 64) {
 			//adds 32 to change ascii value to the lowercase equivilant
 			inputString[i] += 32;
 		}
@@ -217,13 +217,10 @@ void menu() {
 	while (!validInput) {
 
 		//short-ish help prompt
-		std::cout << "Pick cards to damage enemies, upon defeat your score will increase\n";
-		std::cout << "Each card has a mana cost, drawing a new card costs 2 mana\n";
-		std::cout << "Each card is displayed in the following order\n";
-		std::cout << "Card Type - Amount of Damage / Effect Type - Mana Cost\n";
-		std::cout << "Score gain and enemy difficulty scale linearly\n";
+		std::cout << "Pick cards to fight enemies, upon defeat your score will increase\n";
+		std::cout << "You can play a card/draw/pass costs are listed and draw costs 2 mana.\n";
 		std::cout << "If you don't have enough mana to play type 'Pass' to move on\n";
-		std::cout << "To save you must have 7 mana\n\n";
+		std::cout << "Every enemy move will be listed underneath your cards\n\n";
 
 		//need to add mini help prompt at the start and access to help menu
 		//prompts user for input
@@ -307,7 +304,6 @@ void display() {
 
 //save and load functions---------------------------------------------------------------------------------------------------------
 
-//needs rework to save variable amount of cards
 //function for saving the game
 void save() {
 	//defining local variable
@@ -486,7 +482,6 @@ void load() {
 
 }
 
-
 //generation functions------------------------------------------------------------------------------------------------------------
 
 //function to generate enemy variables generates health and card if passed 0 and only card if passed 1
@@ -542,6 +537,20 @@ void generateCard(int cardArray[][3], int cardn) {
 
 //gameplay functions--------------------------------------------------------------------------------------------------------------
 
+//function used to remove a card from a deck
+void removeCard(int cardArray[][3], int cardn) {
+
+	//for loop that makes it so the current cards always take up the first spots in the array
+	for (i = 0; i < (cardArray[0][0] - cardn); i++) {
+		std::swap(cardArray[cardn + i][0], cardArray[cardn + i + 1][0]);
+		std::swap(cardArray[cardn + i][1], cardArray[cardn + i + 1][1]);
+		std::swap(cardArray[cardn + i][2], cardArray[cardn + i + 1][2]);
+	}
+
+	cardArray[0][0] -= 1;
+
+}
+
 //function used to draw a new card
 void drawCard(int cardArray[][3]) {
 
@@ -550,9 +559,7 @@ void drawCard(int cardArray[][3]) {
 
 }
 
-//needs to be reworked to handle player and enemy cards
 //function to play a card
-//currently copy pasted from playerCombat since that more closely resembled how the playcard function will work
 void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2]) {
 
 	//resolving effect from selected card
@@ -592,17 +599,10 @@ void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendly
 		break;
 	}
 
-	//for loop that makes it so the current cards always take up the first spots in the array
-	for (i = 0; i < (cardArray[0][0] - cardn); i++) {
-		std::swap(cardArray[cardn + i][0], cardArray[cardn + i][0]);
-		std::swap(cardArray[cardn + i][1], cardArray[cardn + i][1]);
-		std::swap(cardArray[cardn + i][2], cardArray[cardn + i][2]);
-	}
-
-	cardArray[0][0] -= 1;
+	removeCard(cardArray, cardn);
 }
 
-//combat functions ---------------------------------------------------------------------------------------------------------------
+//combat functions----------------------------------------------------------------------------------------------------------------
 
 //function to calculate damage from effects
 void resolveEffects(int effectArray[][2], int health[2]) {
@@ -683,7 +683,7 @@ void playerCombat() {
 		for (i = 0; i < playerCardsArray[0][0]; i++) {
 			std::cout << "'" << i + 1 << "', ";
 		}
-		std::cout << "Draw/Pass or Help/Save/Exit\n";
+		std::cout << "Draw/Pass/Discard or Help/Save/Exit\n";
 		//gets input and puts it into tempString
 		std::cin >> tempString;
 
@@ -708,9 +708,6 @@ void playerCombat() {
 			//refreshes display
 			display();
 		}
-		else if (tempString == "save" && playerMana == 7) {
-			save();
-		}
 		else if (tempString == "draw" && playerMana >= 2) {
 			//calls function to draw another card
 			drawCard(playerCardsArray);
@@ -724,6 +721,9 @@ void playerCombat() {
 		else if (tempString == "pass") {
 			//updates mana
 			playerMana = 0;
+		}
+		else if (tempString == "save" && playerMana == 7) {
+			save();
 		}
 		else if (tempString == "help") {
 			help();
