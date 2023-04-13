@@ -117,6 +117,7 @@ int main() {
 		//loops combat until player dies
 		combat();
 
+		//this should really be moved to combat
 		//calls function to handle player death
 		death();
 	}
@@ -220,10 +221,10 @@ void help() {
 //function that generates menu
 void menu() {
 
-	clear();
-
 	bool validInput = false;
 	while (!validInput) {
+
+		clear();
 
 		//short-ish help prompt
 		std::cout << "Pick cards to fight enemies, upon defeat your score will increase\n";
