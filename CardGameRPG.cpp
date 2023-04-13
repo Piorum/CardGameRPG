@@ -48,6 +48,10 @@
 int i;
 int temp[3];
 std::string tempString;
+std::string outputString;
+
+//display value
+bool debuffInfo;
 
 //score/counter variables
 int score;
@@ -99,6 +103,7 @@ void pause();
 bool fileCheck(const std::string& filename);
 void clear();
 std::string tolower(std::string inputString);
+std::string input(int user);
 //display functions
 void help(); 
 void menu();
@@ -110,7 +115,10 @@ void load();
 void generateEnemy();
 void generateCard(int cardArray[][3], int cardn);
 //gameplay functions
-void removeCard(int cardArray[][3], int cardn);
+void draw(int cardArray[][3], int mana);
+void discard(int cardArray[][3], int user);
+void restoreCard(int cardArray[][3]);
+void discardCard(int cardArray[][3], int cardn);
 void drawCard(int cardArray[][3]);
 void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2]);
 //combat functions
@@ -189,6 +197,32 @@ std::string tolower(std::string inputString) {
 	return inputString;
 }
 
+//function to get input
+std::string input(int user) {
+	//declaring local variable
+	std::string input;
+
+	//switch case 0 = player input, case 1 enemy AI input
+	switch (user) {
+	case 0:
+
+		//gets user input
+		std::cin >> input;
+
+		//returns string
+		return input;
+		break;
+	case 1:
+
+		//sets user input (in future will be set to a variable set by the AI before running the input function)
+		input = "1";
+
+		//returns string
+		return input;
+		break;
+	}
+}
+
 //display functions---------------------------------------------------------------------------------------------------------------
 
 //currently empty function that should present help information and be exitable back to where the game was at.
@@ -196,11 +230,12 @@ void help() {
 	clear();
 	std::cout << "Cards can be choosen by entering the card number shown on the left of the console.\n";
 	std::cout << "Every card has a mana cost, effects cards always cost 2, damage/heal cards cost atleast 1 or their value divided by 3.\n";
-	std::cout << "Each card has information displayed in the order listed below\n";
+	std::cout << "Each card has information displayed in the order listed below.\n";
 	std::cout << "Card Type (Damage/Heal/Debuff) - Damage/Heal Value / Effect Name - Mana Cost\n";
 	std::cout << "Enemy health is random but will have a higher base value as you defeat more enemies.\n";
 	std::cout << "Score raises exponentially as you defeat enemies and is currently just represents how many enemies you've defeated.\n";
 	std::cout << "If you don't have enough mana a card or draw you can enter 'Pass' to end your turn and refill your mana.\n";
+	std::cout << "Discard allows you to remove 3 cards and get 1 more for free.\n";
 	std::cout << "To save you must have 7 mana\n\n";
 	std::cout << "Typing save exits the game and stores your current gamestate to a file for next startup.\n\n";
 	pause();
@@ -218,14 +253,15 @@ void menu() {
 
 		//short-ish help prompt
 		std::cout << "Pick cards to fight enemies, upon defeat your score will increase\n";
-		std::cout << "You can play a card/draw/pass costs are listed and draw costs 2 mana.\n";
+		std::cout << "You can play a card/draw/pass/discard, costs are listed and draw costs 2 mana.\n";
+		std::cout << "Discard lets you remove 3 cards for 1 new one.\n";
 		std::cout << "If you don't have enough mana to play type 'Pass' to move on\n";
 		std::cout << "Every enemy move will be listed underneath your cards\n\n";
 
 		//need to add mini help prompt at the start and access to help menu
 		//prompts user for input
 		std::cout << "Please type Start, Exit, or Help\n";
-		std::cin >> tempString;
+		tempString = input(0);
 
 		//sets inputstring to all lowercase
 		tempString = tolower(tempString);
@@ -293,11 +329,15 @@ void display() {
 		}
 	}
 
-	if (outputLog2[0] != 0) {
-		std::cout << "You took " << outputLog2[0] << " from debuffs.\n";
-	}
-	if (outputLog2[1] != 0) {
-		std::cout << "You dealt " << outputLog2[1] << " damage with debuffs.\n";
+	if (debuffInfo == true) {
+
+		if (outputLog2[0] != 0) {
+			std::cout << "You took " << outputLog2[0] << " from debuffs.\n";
+		}
+		if (outputLog2[1] != 0) {
+			std::cout << "You dealt " << outputLog2[1] << " damage with debuffs.\n";
+		}
+
 	}
 
 }
@@ -537,8 +577,84 @@ void generateCard(int cardArray[][3], int cardn) {
 
 //gameplay functions--------------------------------------------------------------------------------------------------------------
 
+//player draw function
+void draw(int cardArray[][3], int mana) {
+
+	//calls function to draw another card
+	drawCard(cardArray);
+
+	//updates mana
+	mana -= 2;
+
+	//refreshes display
+	display();
+}
+
+//player discard function
+void discard(int cardArray[][3], int user) {
+	//checks to make sure they have enough cards to discard
+	if (cardArray[0][0] > 2) {
+		//display update
+		display();
+		std::cout << "Please input 3 card numbers to discard or Cancel\n";
+		//sets a check to see if discarding gets canceled
+		temp[1] = 0;
+		//loops 3 times to delete 3 cards
+		for (temp[0] = 0; temp[0] < 3; temp[0]++) {
+			//sets user input to tempString
+			tempString = input(user);
+			//attempts to convert string to int
+			try {
+				discardCard(cardArray, std::stoi(tempString));
+			}
+			//checks if string is equal to cancel if converiting to int fails
+			catch (...) {
+				if (tolower(tempString) == "cancel") {
+					//restores cards that the player discards
+					for (temp[1] = 0; temp[1] < temp[0]; temp[1]++) {
+						restoreCard(cardArray);
+					}
+					//sets variable to 3 to exit loop
+					temp[0] = 3;
+					//sets check to show loop was canceled
+					temp[1] = 1;
+				}
+				else {
+					//tells user they inputed something invalid and decrements loop counter
+					display();
+					std::cout << "Invalid Input - Please type a number or cancel\n";
+					temp[0]--;
+					pause();
+
+				}
+			}
+			//display update showing remaining cards needed to be discarded
+			display();
+			std::cout << "Please select " << 2 - temp[0] << " more cards.\n";
+		}
+		//draws new card if loop was no canceled
+		if (temp[1] == 0) {
+			drawCard(cardArray);
+		}
+		//display update
+		display();
+	}
+	else {
+		//display update informing user of an error
+		display();
+		std::cout << "You need 3 cards to discard\n";
+	}
+}
+
+//will later be reworked to draw from the bottom of the deck
+//function to restore card
+void restoreCard(int cardArray[][3]) {
+	cardArray[0][0]++;
+}
+
+//generic discard functoin
 //function used to remove a card from a deck
-void removeCard(int cardArray[][3], int cardn) {
+void discardCard(int cardArray[][3], int cardn) {
 
 	//for loop that makes it so the current cards always take up the first spots in the array
 	for (i = 0; i < (cardArray[0][0] - cardn); i++) {
@@ -551,6 +667,7 @@ void removeCard(int cardArray[][3], int cardn) {
 
 }
 
+//generic draw function
 //function used to draw a new card
 void drawCard(int cardArray[][3]) {
 
@@ -559,6 +676,7 @@ void drawCard(int cardArray[][3]) {
 
 }
 
+//generic and player play card function
 //function to play a card
 void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2]) {
 
@@ -599,7 +717,8 @@ void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendly
 		break;
 	}
 
-	removeCard(cardArray, cardn);
+	//removes card from play
+	discardCard(cardArray, cardn);
 }
 
 //combat functions----------------------------------------------------------------------------------------------------------------
@@ -662,6 +781,8 @@ void enemyCombat() {
 //function to resolve player combat - needs to be extended to include having the player choose what action to take - then resolving effects
 void playerCombat() {
 
+	//turns on debuff info
+	debuffInfo = true;
 
 	//refreshes display
 	display();
@@ -685,7 +806,10 @@ void playerCombat() {
 		}
 		std::cout << "Draw/Pass/Discard or Help/Save/Exit\n";
 		//gets input and puts it into tempString
-		std::cin >> tempString;
+		tempString = input(0);
+
+		//turns of debuff info
+		debuffInfo = false;
 
 		//trys to convert input to int
 		try {
@@ -697,45 +821,46 @@ void playerCombat() {
 		//sets the inputstring to all lowercase
 		tempString = tolower(tempString);
 
-		//checks if the value is within any of the ranges
+		//checks if all values are within the ranges
 		if (temp[0] > 0 && temp[0] <= playerCardsArray[0][0] && playerCardsArray[temp[0]][2] <= playerMana) {
-			//calls function resolving effect from selected player card
-			playCard(playerCardsArray, temp[0], playerHealth, playerEffects, enemyHealth, enemyEffects);
 
 			//updates mana
 			playerMana -= playerCardsArray[temp[0]][2];
+
+			//calls function resolving effect from selected player card
+			playCard(playerCardsArray, temp[0], playerHealth, playerEffects, enemyHealth, enemyEffects);
 
 			//refreshes display
 			display();
 		}
 		else if (tempString == "draw" && playerMana >= 2) {
-			//calls function to draw another card
-			drawCard(playerCardsArray);
-
-			//updates mana
-			playerMana -= 2;
-
-			//refreshes display
-			display();
+			draw(playerCardsArray, playerMana);
 		}
 		else if (tempString == "pass") {
 			//updates mana
 			playerMana = 0;
 		}
+		else if (tempString == "discard") {
+			//runs discard function
+			discard(playerCardsArray, 0);
+		}
 		else if (tempString == "save" && playerMana == 7) {
+			//runs save function
 			save();
 		}
 		else if (tempString == "help") {
+			//runs help function
 			help();
 		}
 		else if (tempString == "exit") {
+			//runs exit function
 			exit();
 		}
 		else {
-			tempString = "";
+			//display update informing user of an error
+			display();
 			std::cout << "Invalid Input or Not enough mana\n";
 		}
-
 	}
 
 	//refreshes display
