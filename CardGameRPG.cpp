@@ -114,6 +114,8 @@ void menu();
 void display();
 //save and load functions 
 void save();
+void loadArray(int temparray[][3], std::stringstream& tempbuffer, std::string tempstring[]);
+void loadArray2(int temparray[][2], std::stringstream& tempbuffer, std::string tempstring[]);
 void load();
 //generation functions
 void generateEnemy();
@@ -399,6 +401,39 @@ void save() {
 	exit();
 }
 
+//function for loading an array of size [][3]
+void loadArray(int temparray[][3], std::stringstream& tempbuffer, std::string tempstring[]) {
+
+	for (i = 0; i < temparray[0][0]; i++) {
+		//adds the next three values in the buff to the savefileText array
+		for (temp[0] = 0; temp[0] < 3; temp[0]++) {
+			tempbuffer >> tempString;
+			tempstring[temp[0]] = tempString;
+		}
+		//adds the three values to the cardn based off the number of loops
+		temparray[i + 1][0] = std::stoi(tempstring[0]);
+		temparray[i + 1][1] = std::stoi(tempstring[1]);
+		temparray[i + 1][2] = std::stoi(tempstring[2]);
+	}
+
+}
+
+//function for loading an array of size [][2]
+void loadArray2(int temparray[][2], std::stringstream& tempbuffer, std::string tempstring[]) {
+
+	for (i = 0; i < temparray[0][0]; i++) {
+		//adds the next three values in the buff to the savefileText array
+		for (temp[0] = 0; temp[0] < 3; temp[0]++) {
+			tempbuffer >> tempString;
+			tempstring[temp[0]] = tempString;
+		}
+		//adds the three values to the cardn based off the number of loops
+		temparray[i + 1][0] = std::stoi(tempstring[0]);
+		temparray[i + 1][1] = std::stoi(tempstring[1]);
+	}
+
+}
+
 //load function that loads save file or sets starting variables
 void load() {
 	std::srand(std::time(nullptr));
@@ -477,42 +512,10 @@ void load() {
 
 		//recreating arrays
 		//loops that goes for as many cards as were stored in the save file
-		for (i = 0; i < playerCardsArray[0][0]; i++) {
-			//adds the next three values in the buff to the savefileText array
-			for (temp[0] = 0; temp[0] < 3; temp[0]++) {
-				buffer2 >> tempString;
-				savefileText[temp[0]] = tempString;
-			}
-			//adds the three values to the cardn based off the number of loops
-			playerCardsArray[i + 1][0] = std::stoi(savefileText[0]);
-			playerCardsArray[i + 1][1] = std::stoi(savefileText[1]);
-			playerCardsArray[i + 1][2] = std::stoi(savefileText[2]);
-		}
-		for (i = 0; i < enemyCardsArray[0][0]; i++) {
-			for (temp[0] = 0; temp[0] < 3; temp[0]++) {
-				buffer2 >> tempString;
-				savefileText[temp[0]] = tempString;
-			}
-			enemyCardsArray[i + 1][0] = std::stoi(savefileText[0]);
-			enemyCardsArray[i + 1][1] = std::stoi(savefileText[1]);
-			enemyCardsArray[i + 1][2] = std::stoi(savefileText[2]);
-		}
-		for (i = 0; i < playerEffects[0][0]; i++) {
-			for (temp[0] = 0; temp[0] < 3; temp[0]++) {
-				buffer2 >> tempString;
-				savefileText[temp[0]] = tempString;
-			}
-			playerEffects[i + 1][0] = std::stoi(savefileText[0]);
-			playerEffects[i + 1][1] = std::stoi(savefileText[1]);
-		}
-		for (i = 0; i < enemyEffects[0][0]; i++) {
-			for (temp[0] = 0; temp[0] < 3; temp[0]++) {
-				buffer2 >> tempString;
-				savefileText[temp[0]] = tempString;
-			}
-			enemyEffects[i + 1][0] = std::stoi(savefileText[0]);
-			enemyEffects[i + 1][1] = std::stoi(savefileText[1]);
-		}
+		loadArray(playerCardsArray, buffer2, savefileText);
+		loadArray(enemyCardsArray, buffer2, savefileText);
+		loadArray2(playerEffects, buffer2, savefileText);
+		loadArray2(enemyEffects, buffer2, savefileText);
 
 		//closes file
 		fin.close();
