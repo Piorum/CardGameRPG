@@ -10,49 +10,17 @@
 //using namespace std;
 
 //notes
-//Note for Computer Science I CSC1060C05 and myself tbh-------------------------------
-// I do not plan to finish all of what is listed in my notes by the end of the semester most of these notes I'm leaving for later the
-// plan is to continue working on this going forward and keep reiterating as I learn new things so I can see how it changes over time.
-// My expectation is that I will need to rework this program many times as I learn which things can be done better. I have also just 
-// found this quite fun to work on every once in awhile, most other programs I've made were not things I wanted to make.
-//------------------------------------------------------------------------------------
 
 //General Notes-----------------------------------------------------------------------
-//These are changes I plan to make to the program and can be removed.
 //
-// To-Do--------------------
-// fix save system
+// fix save system so savefile is not deleted every time
 // add highscore
-// 
-// New Systems--------------
-// add buffs
-// add card discard system
-// add deck system - deck with rotating set cards more like an actual card game - this will be needed more for later systems I want to add
-// add system that lets you add a new card to your deck after defeating an enemy
-// many more systems I have planned for later but these here are imo the most impactful
-//
-// Notes--------------------
-// wait for more systems to balance combat
-// move all cout calls to the display function so it can later be reworked to call graphics APIs for a better UI
-// 
-// Progression Path---------
-//  -- WIP
-//  -- continuously update visual errors that will be harder to fix later ( Ex. changing enemy health so it never displays as negative )
-//	-- add new systems relating to the combat
-//  -- add new systems relating to newgame+
-//  -- consider redesign to make use of classes
-//  -- consider redesign to make use of header files to clean up main .cpp file and improve scalabilty/compile times going forward
-//  -- consider work and benefit of a rewrite to C# -- currently leaning towards C++
-//  -- at this point the "game" should be finished and running well and next should be making the visual interface
-//  -- start developing a structure to make use of graphics APIs to make a GUI - using DirectX12 is something i'm interested in
-//------------------------------------------------------------------------------------
 
 //creating global variables/arrays------------------------------------------------------------------------------------------------
 //temp variables for storing random values
 int i;
 int temp[3];
 std::string tempString;
-std::string outputString;
 
 //display value
 bool debuffInfo;
@@ -404,8 +372,9 @@ void save() {
 //function for loading an array of size [][3]
 void loadArray(int temparray[][3], std::stringstream& tempbuffer, std::string tempstring[]) {
 
+	//gets value of how many total cards there are loops to refill all the data
 	for (i = 0; i < temparray[0][0]; i++) {
-		//adds the next three values in the buff to the savefileText array
+		//adds the next three values in the buff to the tempstring array
 		for (temp[0] = 0; temp[0] < 3; temp[0]++) {
 			tempbuffer >> tempString;
 			tempstring[temp[0]] = tempString;
@@ -915,6 +884,10 @@ void combat() {
 			roundCounter++;
 			//regenerates enemy
 			generateEnemy();
+
+			//resets effects counters
+			playerEffects[0][0] = 0;
+			enemyEffects[0][0] = 0;
 
 			//calls pause function
 			pause();
