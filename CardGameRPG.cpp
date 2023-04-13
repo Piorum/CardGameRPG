@@ -20,6 +20,10 @@
 //General Notes-----------------------------------------------------------------------
 //These are changes I plan to make to the program and can be removed.
 //
+// To-Do--------------------
+// fix save system
+// add highscore
+// 
 // New Systems--------------
 // add buffs
 // add card discard system
@@ -34,11 +38,11 @@
 // Progression Path---------
 //  -- WIP
 //  -- continuously update visual errors that will be harder to fix later ( Ex. changing enemy health so it never displays as negative )
-//  -- redesign to make use of classes
-//  -- redesign to make use of header files to clean up main .cpp file and improve scalabilty/compile times going forward
-//  -- consider work and benefit of a rewrite to C# -- currently leaning towards C++
 //	-- add new systems relating to the combat
 //  -- add new systems relating to newgame+
+//  -- consider redesign to make use of classes
+//  -- consider redesign to make use of header files to clean up main .cpp file and improve scalabilty/compile times going forward
+//  -- consider work and benefit of a rewrite to C# -- currently leaning towards C++
 //  -- at this point the "game" should be finished and running well and next should be making the visual interface
 //  -- start developing a structure to make use of graphics APIs to make a GUI - using DirectX12 is something i'm interested in
 //------------------------------------------------------------------------------------
@@ -115,12 +119,12 @@ void load();
 void generateEnemy();
 void generateCard(int cardArray[][3], int cardn);
 //gameplay functions
-void draw(int cardArray[][3], int mana);
+void draw(int cardArray[][3], int& mana);
 void discard(int cardArray[][3], int user);
 void restoreCard(int cardArray[][3]);
 void discardCard(int cardArray[][3], int cardn);
 void drawCard(int cardArray[][3]);
-void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2]);
+void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2], int& mana);
 //combat functions
 void resolveEffects(int effectArray[][2], int health[2]);
 void enemyCombat();
@@ -253,7 +257,7 @@ void menu() {
 
 		//short-ish help prompt
 		std::cout << "Pick cards to fight enemies, upon defeat your score will increase\n";
-		std::cout << "You can play a card/draw/pass/discard, costs are listed and draw costs 2 mana.\n";
+		std::cout << "You can play a card/draw/pass/discard, costs are listed and draw costs 1 mana.\n";
 		std::cout << "Discard lets you remove 3 cards for 1 new one.\n";
 		std::cout << "If you don't have enough mana to play type 'Pass' to move on\n";
 		std::cout << "Every enemy move will be listed underneath your cards\n\n";
@@ -297,7 +301,7 @@ void display() {
 	std::cout << "HP: " << playerHealth[0] << "/50" << "||||||||||" << "Enemy: " << enemyHealth[0] << "/" << enemyHealth[1] << "\n";
 
 	//prints player mana
-	std::cout << "Mana: " << playerMana << "\n";
+	std::cout << "Mana: " << playerMana << "  |||||||||| " << "Cards: " << playerCardsArray[0][0] << "/10\n";
 
 	//prints players cards
 	for (i = 1; i <= playerCardsArray[0][0]; i++) {
@@ -578,16 +582,23 @@ void generateCard(int cardArray[][3], int cardn) {
 //gameplay functions--------------------------------------------------------------------------------------------------------------
 
 //player draw function
-void draw(int cardArray[][3], int mana) {
+void draw(int cardArray[][3], int& mana) {
 
-	//calls function to draw another card
-	drawCard(cardArray);
+	if (cardArray[0][0] < 10){
 
-	//updates mana
-	mana -= 2;
+		//calls function to draw another card
+		drawCard(cardArray);
 
-	//refreshes display
-	display();
+		//updates mana
+		mana -= 1;
+
+		//refreshes display
+		display();
+	}
+	else {
+		display();
+		std::cout << "You already have too many cards.\n";
+	}
 }
 
 //player discard function
@@ -678,7 +689,7 @@ void drawCard(int cardArray[][3]) {
 
 //generic and player play card function
 //function to play a card
-void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2]) {
+void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2], int& mana) {
 
 	//resolving effect from selected card
 	//switch to play the different card types
@@ -717,6 +728,9 @@ void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendly
 		break;
 	}
 
+	//updates mana
+	mana -= cardArray[cardn][2];
+
 	//removes card from play
 	discardCard(cardArray, cardn);
 }
@@ -754,25 +768,26 @@ void resolveEffects(int effectArray[][2], int health[2]) {
 
 //function to resolve enemy combat - will be mostly replaced by playCard function - should handle enemy AI
 void enemyCombat() {
-	//resolves effect of enemy card
-	//switch to play different card types
-	//sets i to zero so it can be used for output log
-	i = 0;
 
+	//resets enemy mana
+	enemyMana = 5;
+
+	//enemy main loop
 	while (enemyMana >= enemyCardsArray[1][2]) {
-
-		//removes mana for playing card
-		enemyMana -= enemyCardsArray[1][2];
 
 		//adds the card type used and value to the output log
 		outputLog[outputLog[0][0] + 1][0] = enemyCardsArray[1][0];
 		outputLog[outputLog[0][0] + 1][1] = enemyCardsArray[1][1];
 
 		//will add basic decision tree later but for now it plays its 1 card then draws a new one
-		playCard(enemyCardsArray, 1, enemyHealth, enemyEffects, playerHealth, playerEffects);
+		playCard(enemyCardsArray, 1, enemyHealth, enemyEffects, playerHealth, playerEffects, enemyMana);
 		drawCard(enemyCardsArray);
 
 		outputLog[0][0]++;
+
+		if (playerHealth[0] < 1) {
+			enemyMana = 0;
+		}
 	}
 
 
@@ -781,10 +796,13 @@ void enemyCombat() {
 //function to resolve player combat - needs to be extended to include having the player choose what action to take - then resolving effects
 void playerCombat() {
 
+	//resets mana
+	playerMana = 7;
+
 	//turns on debuff info
 	debuffInfo = true;
 
-	//refreshes display
+	//refreshes display to show enemy actions
 	display();
 
 	//resets output log
@@ -794,6 +812,7 @@ void playerCombat() {
 	}
 	outputLog[0][0] = 0;
 
+	//player main loop
 	//while loop that continously prompts user for input until they enter a valid option
 	while (playerMana > 0) {
 
@@ -821,19 +840,21 @@ void playerCombat() {
 		//sets the inputstring to all lowercase
 		tempString = tolower(tempString);
 
+		//playcard action
 		//checks if all values are within the ranges
 		if (temp[0] > 0 && temp[0] <= playerCardsArray[0][0] && playerCardsArray[temp[0]][2] <= playerMana) {
 
-			//updates mana
-			playerMana -= playerCardsArray[temp[0]][2];
-
 			//calls function resolving effect from selected player card
-			playCard(playerCardsArray, temp[0], playerHealth, playerEffects, enemyHealth, enemyEffects);
+			playCard(playerCardsArray, temp[0], playerHealth, playerEffects, enemyHealth, enemyEffects, playerMana);
 
 			//refreshes display
 			display();
+
+			if (enemyHealth[0] < 1) {
+				playerMana = 0;
+			}
 		}
-		else if (tempString == "draw" && playerMana >= 2) {
+		else if (tempString == "draw" && playerMana > 0) {
 			draw(playerCardsArray, playerMana);
 		}
 		else if (tempString == "pass") {
@@ -863,20 +884,33 @@ void playerCombat() {
 		}
 	}
 
-	//refreshes display
-	display();
 }
 
 //function that loops until player death, handles enemy regeneration and switching between player and enemy turns
 void combat() {
 
 	while (playerHealth[0] > 0) {
+
 		//checks if enemy health is below 0
 		if (enemyHealth[0] < 1) {
+		}
 
-			//regenerates enemy
+		//starts players turn
+		//calls function to resolve player actions
+		playerCombat();
+
+		//starts enemys turn if they are not dead
+		//calls function to start enemys turn
+		if (enemyHealth[0] > 0) {
+			enemyCombat();
+		}
+		else {
+			//display refresh with enemy beat notification
+			display();
 			std::cout << "You beat an enemy!";
+			//increments roundcounter
 			roundCounter++;
+			//regenerates enemy
 			generateEnemy();
 
 			//calls pause function
@@ -887,16 +921,8 @@ void combat() {
 
 			//calls function to refresh display so that new enemy is shown
 			display();
-		}
-		//resets playerMana and starts players turn
-		//calls function to resolve player actions
-		playerMana = 7;
-		playerCombat();
 
-		//resets enemyMana and starts enemys turn
-		//calls function to start enemys turn
-		enemyMana = 5;
-		enemyCombat();
+		}
 
 		//sets outputlog to the current health value, resolves effects damage, then subtracts current health value to get damage taken
 		//resolves effects on the player
