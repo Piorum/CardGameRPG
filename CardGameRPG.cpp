@@ -2,7 +2,7 @@
 #include <cstdlib> // std::srand, std::rand, std::exit
 #include <fstream> // std::ifstream, std::ofstream
 #include <sstream> // std::stringstream
-#include <string> // std::string, std::stoi
+#include <string> // std::string, std::to_string
 #include <cmath> // std::trunc
 #include <ctime> // std:time
 
@@ -15,6 +15,7 @@
 //
 // fix save system so savefile is not deleted every time
 // add highscore
+// add enemy ai
 
 //creating global variables/arrays------------------------------------------------------------------------------------------------
 //temp variables for storing random values
@@ -76,6 +77,8 @@ bool fileCheck(const std::string& filename);
 void clear();
 std::string tolower(std::string inputString);
 std::string input(int user);
+int stoint(std::string inputString);
+int len(std::string inputstring);
 //display functions
 void help(); 
 void menu();
@@ -83,7 +86,7 @@ void display();
 //save and load functions 
 void save();
 void loadArray(int temparray[][3], std::stringstream& tempbuffer, std::string tempstring[]);
-void loadArray2(int temparray[][2], std::stringstream& tempbuffer, std::string tempstring[]);
+void loadArray(int temparray[][2], std::stringstream& tempbuffer, std::string tempstring[]);
 void load();
 //generation functions
 void generateEnemy();
@@ -128,8 +131,8 @@ int main() {
 
 //function to exit the game
 void exit() {
-	std::exit(0);
 	//save();
+	std::exit(0);
 }
 
 //pause function pauses the game until user input
@@ -160,10 +163,10 @@ void clear() {
 //function that takes string as an input and converts each uppercase character to lowercase then returns the string
 std::string tolower(std::string inputString) {
 
-	//finds length of string and creates a loop to check every values
-	for (i = 0; i < std::size(inputString); i++) {
+	//finds length of string and creates a loop to check every value
+	for (i = 0; i < len(inputString); i++) {
 		//checking if the value is in range of uppercase letters
-		if (inputString[i] < 90 && inputString[i] > 64) {
+		if (inputString[i] < 91 && inputString[i] > 64) {
 			//adds 32 to change ascii value to the lowercase equivilant
 			inputString[i] += 32;
 		}
@@ -196,6 +199,51 @@ std::string input(int user) {
 		return input;
 		break;
 	}
+}
+
+//function to convert int to string
+int stoint(std::string inputString) {
+	int counter;
+	int counter2;
+	int outputInt = -1;
+	int intcount = 0;
+	int multiplicity = 1;
+
+	//finds length of string and creates a loop to check every value
+	for (counter = 0; counter < len(inputString); counter++) {
+		//checking if the value is in range of numbers 
+		if (inputString[counter] < 58 && inputString[counter] > 47) {
+			if (outputInt == -1) {
+				outputInt = 0;
+			}
+			//adds the char - 48 to the outputInt (adjusts to change from ascii value)
+			outputInt = outputInt * multiplicity;
+			outputInt += (inputString[counter] - 48);
+			intcount++;
+			for (counter2 = 0; counter2 < intcount; counter2++) {
+				multiplicity = 1;
+				multiplicity = multiplicity * 10;
+			}
+
+		}
+
+	}
+
+	return outputInt;
+}
+
+//function to get length of a string
+int len(std::string inputstring) {
+	int counter;
+	int length = 0;
+
+	//loops and adds 1 to length under the null terminator is reached
+	for (counter = 0; inputstring[counter] != '\0'; counter++)
+	{
+		length++;
+	}
+
+	return length;
 }
 
 //display functions---------------------------------------------------------------------------------------------------------------
@@ -257,6 +305,7 @@ void menu() {
 		//if user types something else
 		else {
 			std::cout << "Invalid Input";
+			pause();
 		}
 	}
 
@@ -364,10 +413,6 @@ void save() {
 	}
 
 	fout << saveString;
-
-	//informing user game is saved and exiting
-	std::cout << "Saved";
-	exit();
 }
 
 //function for loading an array of size [][3]
@@ -381,15 +426,15 @@ void loadArray(int temparray[][3], std::stringstream& tempbuffer, std::string te
 			tempstring[temp[0]] = tempString;
 		}
 		//adds the three values to the cardn based off the number of loops
-		temparray[i + 1][0] = std::stoi(tempstring[0]);
-		temparray[i + 1][1] = std::stoi(tempstring[1]);
-		temparray[i + 1][2] = std::stoi(tempstring[2]);
+		temparray[i + 1][0] = stoint(tempstring[0]);
+		temparray[i + 1][1] = stoint(tempstring[1]);
+		temparray[i + 1][2] = stoint(tempstring[2]);
 	}
 
 }
 
 //function for loading an array of size [][2]
-void loadArray2(int temparray[][2], std::stringstream& tempbuffer, std::string tempstring[]) {
+void loadArray(int temparray[][2], std::stringstream& tempbuffer, std::string tempstring[]) {
 
 	for (i = 0; i < temparray[0][0]; i++) {
 		//adds the next three values in the buff to the savefileText array
@@ -398,8 +443,8 @@ void loadArray2(int temparray[][2], std::stringstream& tempbuffer, std::string t
 			tempstring[temp[0]] = tempString;
 		}
 		//adds the three values to the cardn based off the number of loops
-		temparray[i + 1][0] = std::stoi(tempstring[0]);
-		temparray[i + 1][1] = std::stoi(tempstring[1]);
+		temparray[i + 1][0] = stoint(tempstring[0]);
+		temparray[i + 1][1] = stoint(tempstring[1]);
 	}
 
 }
@@ -447,17 +492,11 @@ void load() {
 		}
 
 		//not really happy with this ----------
-		//saving savefile to a string
+		//saving savefile to a string array
 		std::stringstream buffer;
 		buffer << fin.rdbuf();
-		std::string fileContents;
-		fileContents = buffer.str();
-
-		//savefile always stores at least 12 values from 0-11
-		//spliting savefileString into an array splitting by ' '
-		std::stringstream buffer2(fileContents);
 		for (i = 0; i < 12; i++) {
-			buffer2 >> tempString;
+			buffer >> tempString;
 			savefileText[i] = tempString;
 		}
 		//-------------------------------------
@@ -465,27 +504,31 @@ void load() {
 
 		//order the values are stored is always the same and so can be reset in order
 		//storing values from file to variables
-		score = std::stoi(savefileText[0]);
-		roundCounter = std::stoi(savefileText[1]);
-		playerHealth[0] = std::stoi(savefileText[2]);
-		playerHealth[1] = std::stoi(savefileText[3]);
-		enemyHealth[0] = std::stoi(savefileText[4]);
-		enemyHealth[1] = std::stoi(savefileText[5]);
-		playerMana = std::stoi(savefileText[6]);
-		enemyMana = std::stoi(savefileText[7]);
+		score = stoint(savefileText[0]);
+		roundCounter = stoint(savefileText[1]);
+		playerHealth[0] = stoint(savefileText[2]);
+		playerHealth[1] = stoint(savefileText[3]);
+		enemyHealth[0] = stoint(savefileText[4]);
+		enemyHealth[1] = stoint(savefileText[5]);
+		playerMana = stoint(savefileText[6]);
+		enemyMana = stoint(savefileText[7]);
 
 		//sets values for the number of cards/effects in each array
-		playerCardsArray[0][0] = std::stoi(savefileText[8]);
-		enemyCardsArray[0][0] = std::stoi(savefileText[9]);
-		playerEffects[0][0] = std::stoi(savefileText[10]);
-		enemyEffects[0][0] = std::stoi(savefileText[11]);
+		playerCardsArray[0][0] = stoint(savefileText[8]);
+		enemyCardsArray[0][0] = stoint(savefileText[9]);
+		playerEffects[0][0] = stoint(savefileText[10]);
+		enemyEffects[0][0] = stoint(savefileText[11]);
+
+		std::cout << "test";
 
 		//recreating arrays
 		//loops that goes for as many cards as were stored in the save file
-		loadArray(playerCardsArray, buffer2, savefileText);
-		loadArray(enemyCardsArray, buffer2, savefileText);
-		loadArray2(playerEffects, buffer2, savefileText);
-		loadArray2(enemyEffects, buffer2, savefileText);
+		loadArray(playerCardsArray, buffer, savefileText);
+		loadArray(enemyCardsArray, buffer, savefileText);
+		loadArray(playerEffects, buffer, savefileText);
+		loadArray(enemyEffects, buffer, savefileText);
+
+		std::cout << "test2";
 
 		//closes file
 		fin.close();
@@ -588,11 +631,11 @@ void discard(int cardArray[][3], int user) {
 			//sets user input to tempString
 			tempString = input(user);
 			//attempts to convert string to int
-			try {
-				discardCard(cardArray, std::stoi(tempString));
+			if (stoint(tempString) != -1) {
+				discardCard(cardArray, stoint(tempString));
 			}
-			//checks if string is equal to cancel if converiting to int fails
-			catch (...) {
+			//checks if string is equal to cancel if converting to int fails
+			else {
 				if (tolower(tempString) == "cancel") {
 					//restores cards that the player discards
 					for (temp[1] = 0; temp[1] < temp[0]; temp[1]++) {
@@ -804,10 +847,8 @@ void playerCombat() {
 		debuffInfo = false;
 
 		//trys to convert input to int
-		try {
-			temp[0] = std::stoi(tempString);
-		}
-		catch (...) {
+		if (stoint(tempString) != -1) {
+			temp[0] = stoint(tempString);
 		}
 
 		//sets the inputstring to all lowercase
@@ -841,6 +882,9 @@ void playerCombat() {
 		else if (tempString == "save" && playerMana == 7) {
 			//runs save function
 			save();
+
+			//informing user game is saved
+			std::cout << "Saved\n";
 		}
 		else if (tempString == "help") {
 			//runs help function
@@ -864,23 +908,25 @@ void combat() {
 
 	while (playerHealth[0] > 0) {
 
-		//checks if enemy health is below 0
-		if (enemyHealth[0] < 1) {
-		}
-
 		//starts players turn
 		//calls function to resolve player actions
 		playerCombat();
 
+		//resolves effects on the enemy
+		outputLog2[1] = enemyHealth[0];
+		resolveEffects(enemyEffects, enemyHealth);
+		outputLog2[1] -= enemyHealth[0];
+
 		//starts enemys turn if they are not dead
 		//calls function to start enemys turn
+		//checks if enemy is alive.
 		if (enemyHealth[0] > 0) {
 			enemyCombat();
 		}
 		else {
 			//display refresh with enemy beat notification
 			display();
-			std::cout << "You beat an enemy!";
+			std::cout << "You beat an enemy!\n";
 			//increments roundcounter
 			roundCounter++;
 			//regenerates enemy
@@ -890,11 +936,16 @@ void combat() {
 			playerEffects[0][0] = 0;
 			enemyEffects[0][0] = 0;
 
-			//calls pause function
-			pause();
-
 			//adds one to score
 			score += roundCounter;
+
+			save();
+
+			//informing user game autosaved
+			std::cout << "autosaved\n";
+
+			//calls pause function
+			pause();
 
 			//calls function to refresh display so that new enemy is shown
 			display();
@@ -906,11 +957,6 @@ void combat() {
 		outputLog2[0] = playerHealth[0];
 		resolveEffects(playerEffects, playerHealth);
 		outputLog2[0] -= playerHealth[0];
-
-		//resolves effects on the enemy
-		outputLog2[1] = enemyHealth[0];
-		resolveEffects(enemyEffects, enemyHealth);
-		outputLog2[1] -= enemyHealth[0];
 
 
 	}
