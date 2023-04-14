@@ -79,6 +79,7 @@ std::string tolower(std::string inputString);
 std::string input(int user);
 int stoint(std::string inputString);
 int len(std::string inputstring);
+std::string intost(int inputInt);
 //display functions
 void help(); 
 void menu();
@@ -201,8 +202,9 @@ std::string input(int user) {
 	}
 }
 
-//function to convert int to string
+//function to convert a string to an int
 int stoint(std::string inputString) {
+	//declaring local variables
 	int counter;
 	int counter2;
 	int outputInt = -1;
@@ -211,22 +213,29 @@ int stoint(std::string inputString) {
 
 	//finds length of string and creates a loop to check every value
 	for (counter = 0; counter < len(inputString); counter++) {
-		//checking if the value is in range of numbers 
+		//checking if the value is in the ascii value range of numbers 
 		if (inputString[counter] < 58 && inputString[counter] > 47) {
+			//setting outputInt to 0 so that the number are added correctly
 			if (outputInt == -1) {
 				outputInt = 0;
 			}
-			//adds the char - 48 to the outputInt (adjusts to change from ascii value)
+			//this adds numbers left to right so this makes sure 1728 get added as 1000 + 700 + 20 + 8
 			outputInt = outputInt * multiplicity;
+			//adds the char - 48 to the outputInt (adjusts to change from ascii value)
 			outputInt += (inputString[counter] - 48);
+			//adds one to the amount of numbers added so multiplicity can be set to the right value
 			intcount++;
+			//sets multiplicity to the right value by checking how many integers have already been added to the string
 			for (counter2 = 0; counter2 < intcount; counter2++) {
 				multiplicity = 1;
-				multiplicity = multiplicity * 10;
+				multiplicity *= 10;
 			}
 
 		}
 
+	}
+	if (inputString[0] == '-') {
+		outputInt -= (2 * outputInt);
 	}
 
 	return outputInt;
@@ -244,6 +253,81 @@ int len(std::string inputstring) {
 	}
 
 	return length;
+}
+
+//function used to convert a int to string
+std::string intost(int inputInt) {
+	//declaring local variables
+	int counter;
+	int counter2 = 1;
+	int tempInt;
+	int tempInt2 = 0;
+	std::string outputString;
+	int multiplicity = 10;
+	bool negativeflag = false;
+
+	if (inputInt < 0) {
+		negativeflag = true;
+		inputInt -= (2 * inputInt);
+	}
+
+	//checking to see how many zeros are behind the first number
+	for (counter = 0; counter != -1;) {
+		//sets tempInt to the input value
+		tempInt = inputInt;
+		//uses loss of data to check if number is below zero when divided by a certain multiplicity
+		tempInt /= multiplicity;
+		//checks to see if number is below 1 after being divided by multiplicity
+		if (tempInt != 0) {
+			//increases multiplicity
+			multiplicity *= 10;
+			//adds to the counter tracking character length of the int
+			counter2++;
+		}
+		else {
+			//reduces multiplicity
+			multiplicity /= 10;
+			//sets exit flag
+			counter = -1;
+		}
+
+	}
+
+	//resizes string to the size of the integer
+	outputString.resize(counter2);
+
+	//loops for how every many characters long the int is
+	for (counter = 0; counter < counter2; counter++) {
+		tempInt = inputInt;
+		//divides int by multiplicity to get the correct number
+		tempInt /= multiplicity;
+		//subtracts tempInt2 (if the number was 5382 and this was the second loop the number about be 50 making 53 into 3 the correct number)
+		tempInt -= tempInt2;
+		//continuously adding to tempInt2 so that the correct number can keep being selected.
+		if (tempInt2 == 0) {
+			tempInt2 = tempInt;
+			tempInt2 *= 10;
+		}
+		else {
+			tempInt2 += tempInt;
+			tempInt2 *= 10;
+		}
+		outputString[counter] = tempInt + 48;
+		//reduces multiplicity
+		multiplicity /= 10;
+	}
+
+	//swaps all values to the end of the resizes array and add - to the front if number is negative
+	if (negativeflag == true) {
+		outputString.resize(counter2 + 1);
+		for (counter = 0; counter < counter2; counter++) {
+			outputString[counter2 - counter] = outputString[counter2 - counter - 1];
+		}
+		outputString[0] = '-';
+	}
+
+
+	return outputString;
 }
 
 //display functions---------------------------------------------------------------------------------------------------------------
@@ -377,39 +461,39 @@ void save() {
 	std::ofstream fout("savefile.txt");
 
 	//adding variables to saveString
-	saveString += std::to_string(score) + ' ';
-	saveString += std::to_string(roundCounter) + ' ';
-	saveString += std::to_string(playerHealth[0]) + ' ';
-	saveString += std::to_string(playerHealth[1]) + ' ';
-	saveString += std::to_string(enemyHealth[0]) + ' ';
-	saveString += std::to_string(enemyHealth[1]) + ' ';
-	saveString += std::to_string(playerMana) + ' ';
-	saveString += std::to_string(enemyMana) + ' ';
+	saveString += intost(score) + ' ';
+	saveString += intost(roundCounter) + ' ';
+	saveString += intost(playerHealth[0]) + ' ';
+	saveString += intost(playerHealth[1]) + ' ';
+	saveString += intost(enemyHealth[0]) + ' ';
+	saveString += intost(enemyHealth[1]) + ' ';
+	saveString += intost(playerMana) + ' ';
+	saveString += intost(enemyMana) + ' ';
 
 	//adding amount of player/enemy cards and effects
-	saveString += std::to_string(playerCardsArray[0][0]) + ' ';
-	saveString += std::to_string(enemyCardsArray[0][0]) + ' ';
-	saveString += std::to_string(playerEffects[0][0]) + ' ';
-	saveString += std::to_string(enemyEffects[0][0]) + ' ';
+	saveString += intost(playerCardsArray[0][0]) + ' ';
+	saveString += intost(enemyCardsArray[0][0]) + ' ';
+	saveString += intost(playerEffects[0][0]) + ' ';
+	saveString += intost(enemyEffects[0][0]) + ' ';
 
 	//adding each card and effect value to the save string
 	for (i = 0; i < playerCardsArray[0][0]; i++) {
-		saveString += std::to_string(playerCardsArray[i + 1][0]) + ' ';
-		saveString += std::to_string(playerCardsArray[i + 1][1]) + ' ';
-		saveString += std::to_string(playerCardsArray[i + 1][2]) + ' ';
+		saveString += intost(playerCardsArray[i + 1][0]) + ' ';
+		saveString += intost(playerCardsArray[i + 1][1]) + ' ';
+		saveString += intost(playerCardsArray[i + 1][2]) + ' ';
 	}
 	for (i = 0; i < enemyCardsArray[0][0]; i++) {
-		saveString += std::to_string(enemyCardsArray[i + 1][0]) + ' ';
-		saveString += std::to_string(enemyCardsArray[i + 1][1]) + ' ';
-		saveString += std::to_string(enemyCardsArray[i + 1][2]) + ' ';
+		saveString += intost(enemyCardsArray[i + 1][0]) + ' ';
+		saveString += intost(enemyCardsArray[i + 1][1]) + ' ';
+		saveString += intost(enemyCardsArray[i + 1][2]) + ' ';
 	}
 	for (i = 0; i < playerEffects[0][0]; i++) {
-		saveString += std::to_string(playerEffects[i + 1][0]) + ' ';
-		saveString += std::to_string(playerEffects[i + 1][1]) + ' ';
+		saveString += intost(playerEffects[i + 1][0]) + ' ';
+		saveString += intost(playerEffects[i + 1][1]) + ' ';
 	}
 	for (i = 0; i < enemyEffects[0][0]; i++) {
-		saveString += std::to_string(enemyEffects[i + 1][0]) + ' ';
-		saveString += std::to_string(enemyEffects[i + 1][1]) + ' ';
+		saveString += intost(enemyEffects[i + 1][0]) + ' ';
+		saveString += intost(enemyEffects[i + 1][1]) + ' ';
 	}
 
 	fout << saveString;
