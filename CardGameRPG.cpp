@@ -76,11 +76,11 @@ void exit();
 void pause();
 bool fileCheck(const std::string& filename);
 void clear();
-int power(int number, int power);
+int power(int num, int power);
 std::string tolower(std::string inputString);
 std::string input(int user);
 int stoint(std::string inputString);
-int len(std::string inputstring);
+int len(std::string inputString);
 std::string intost(int inputInt);
 //display functions
 void help(); 
@@ -177,13 +177,19 @@ void clear() {
 	std::system("clear || cls");
 }
 
-//function to set get a number to x power
-int power(int number, int power) {
+//function to set a number to a positive power
+int power(int num, int power) {
+	//stores initial number
 	int inum = num;
-	num = 1;
+	//runs loop multiplying the number by itself to the correct power
 	for (int i = 1; i < power; i++) {
 		num *= inum;
 	}
+	//conditions for the power is 0
+	if (power == 0) {
+		num = 1;
+	}
+	//returns number - if power is zero no math is ever applied and it returns the original number
 	return num;
 }
 
@@ -231,37 +237,53 @@ std::string input(int user) {
 
 //function to convert a string to an int
 int stoint(std::string inputString) {
+	//initialize counter, negative flag, and length
 	int i;
 	bool negative = false;
 	int length = len(inputString);
+	//checks if string starts with '-'
 	if (inputString[0] == '-') {
+		//flips negative flag value
 		negative = true;
+		//removes one from the length
 		length--;
+		//shifts every value in the string one down
 		for (i = 0; i < length; i++) {
 			inputString[i] = inputString[i + 1];
 		}
 	}
-	int Pow = power(10, length);
+	//sets Pow to the correct power and zeros out outputInt
+	int Pow = power(10, length - 1);
 	int outputInt = 0;
+	//loops for as many characters as the string is long
 	for (i = 0; i < length; i++) {
+		//checks if value is outside ascii range of numbers
 		if (inputString[i] > 57 && inputString[i] < 48) {
+			//sets outputInt to failure variable and returns
 			outputInt = -999;
 			return outputInt;
 		}
+		//adds to outputInt the numbers in the string from left to right times the multiplicity that it should be
 		outputInt += (inputString[i] - 48) * Pow;
+		//reduces the multiplicity by 1
 		Pow /= 10;
 	}
+	//checks for negative flag
 	if (negative == true) {
+		//converts int to negative
 		outputInt -= 2 * outputInt;
 	}
 	return outputInt;
 }
 
 //function to get length of a string
-int len(std::string inputstring) {
+int len(std::string inputString) {
+	//sets counter
 	int i;
+	//loops adding 1 to the counter untill inputString reaches the end character
 	for (i = 0; inputString[i] != '\0'; i++) {
 	}
+	//sets length to the amount of characters counted
 	int length = i;
 	return length;
 }
@@ -492,7 +514,6 @@ void display() {
 		}
 
 	}
-
 
 }
 
