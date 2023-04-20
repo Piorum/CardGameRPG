@@ -76,6 +76,7 @@ void exit();
 void pause();
 bool fileCheck(const std::string& filename);
 void clear();
+int power(int number, int power);
 std::string tolower(std::string inputString);
 std::string input(int user);
 int stoint(std::string inputString);
@@ -176,6 +177,26 @@ void clear() {
 	std::system("clear || cls");
 }
 
+//function to set get a number to x power
+int power(int number, int power) {
+	int startNumber = number;
+	
+	if (number < 0) {
+		number = -999;
+		return number;
+	}
+	for (int counter = power; counter != 0; --counter) {
+		number *= startNumber;
+	}
+	if (power == 0) {
+		number = 1;
+	}
+
+
+	return number;
+
+}
+
 //function that takes string as an input and converts each uppercase character to lowercase then returns the string
 std::string tolower(std::string inputString) {
 	int counter;
@@ -220,44 +241,26 @@ std::string input(int user) {
 
 //function to convert a string to an int
 int stoint(std::string inputString) {
-	//declaring local variables
-	int counter;
-	int counter2;
-	int outputInt = -999;
-	int intcount = 0;
-	int multiplicity = 1;
 
-	//finds length of string and creates a loop to check every value
-	for (counter = 0; counter < len(inputString); counter++) {
-		//checking if the value is in the ascii value range of numbers 
+	//sets outputInt to the failure number
+	int outputInt = -999;
+	for (int counter = 0;counter < len(inputString);counter++) {
 		if (inputString[counter] < 58 && inputString[counter] > 47) {
-			//setting outputInt to 0 so that the number are added correctly
+			//sets outputInt to 0 if failure number is found
 			if (outputInt == -999) {
 				outputInt = 0;
 			}
-			//this adds numbers left to right so this makes sure 1728 get added as 1000 + 700 + 20 + 8
-			outputInt = outputInt * multiplicity;
-			//adds the char - 48 to the outputInt (adjusts to change from ascii value)
-			outputInt += (inputString[counter] - 48);
-			//adds one to the amount of numbers added so multiplicity can be set to the right value
-			intcount++;
-			//sets multiplicity to the right value by checking how many integers have already been added to the string
-			for (counter2 = 0; counter2 < intcount; counter2++) {
-				multiplicity = 1;
-				multiplicity *= 10;
-			}
-
+			//goes left to right adding each individual number to the apropriate power to the output int
+			outputInt += (inputString[counter] - 48) * power(10, (len(inputString) - counter - 1));
 		}
 		else {
+			//returns failure number if any char is out of range
 			outputInt = -999;
 			return outputInt;
 		}
 
 	}
-	if (inputString[0] == '-') {
-		outputInt -= (2 * outputInt);
-	}
-
+	//returns result
 	return outputInt;
 }
 
