@@ -231,8 +231,16 @@ std::string input(int user) {
 
 //function to convert a string to an int
 int stoint(std::string inputString) {
-	int length = len(inputString);
 	int i;
+	bool negative = false;
+	int length = len(inputString);
+	if (inputString[0] == '-') {
+		negative = true;
+		length--;
+		for (i = 0; i < length; i++) {
+			inputString[i] = inputString[i + 1];
+		}
+	}
 	int Pow = power(10, length);
 	int outputInt = 0;
 	for (i = 0; i < length; i++) {
@@ -243,6 +251,9 @@ int stoint(std::string inputString) {
 		outputInt += (inputString[i] - 48) * Pow;
 		Pow /= 10;
 	}
+	if (negative == true) {
+		outputInt -= 2 * outputInt;
+	}
 	return outputInt;
 }
 
@@ -251,7 +262,7 @@ int len(std::string inputstring) {
 	int i;
 	for (i = 0; inputString[i] != '\0'; i++) {
 	}
-	int length = i + 1;
+	int length = i;
 	return length;
 }
 
