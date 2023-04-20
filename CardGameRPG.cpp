@@ -1,21 +1,22 @@
 #include <iostream> // std::cin, std::cout
-#include <cstdlib> // std::srand, std::rand, std::exit
+#include <cstdlib> // std::srand, std::rand, std::exit, std::sleep
 #include <fstream> // std::ifstream, std::ofstream
 #include <sstream> // std::stringstream
 #include <string> // std::string
 #include <cmath> // std::trunc
 #include <ctime> // std:time
 
-//rewrote without "using namepsace std;" to improve scalability
+//rewrote without "using namepsace std;"
 //using namespace std;
 
-//notes
-
-//General Notes-----------------------------------------------------------------------
+//notes-----------------------------------------------------------------------
 //
 // fix save system so savefile is not deleted every time
 // add highscore
 // add enemy ai
+// redraw to five after defeating enemy
+// show enemy moves in real time
+// only all 3 cards per turn
 
 //creating global variables/arrays------------------------------------------------------------------------------------------------
 //temp variables for storing random values
@@ -132,8 +133,22 @@ int main() {
 
 //function to exit the game
 void exit() {
-	//save();
-	std::exit(0);
+	clear();
+	std::cout << "'S' Save and Exit or 'E' Exit?\n";
+	tempString = tolower(input(0));
+
+	if (tempString == "s") {
+		save();
+		std::cout << "Saved.";
+		std::exit(0);
+	}
+	else if (tempString == "e") {
+		std::exit(0);
+	}
+	else {
+		display();
+		std::cout << "Invalid Input\n";
+	}
 }
 
 //pause function pauses the game until user input
@@ -163,20 +178,21 @@ void clear() {
 
 //function that takes string as an input and converts each uppercase character to lowercase then returns the string
 std::string tolower(std::string inputString) {
+	int counter;
 
 	//finds length of string and creates a loop to check every value
-	for (i = 0; i < len(inputString); i++) {
+	for (counter = 0; counter < len(inputString); counter++) {
 		//checking if the value is in range of uppercase letters
-		if (inputString[i] < 91 && inputString[i] > 64) {
+		if (inputString[counter] < 91 && inputString[counter] > 64) {
 			//adds 32 to change ascii value to the lowercase equivilant
-			inputString[i] += 32;
+			inputString[counter] += 32;
 		}
 	}
 
 	return inputString;
 }
 
-//function to get input
+//function to get input - 0 for player, 1 for enemy
 std::string input(int user) {
 	//declaring local variable
 	std::string input;
@@ -207,7 +223,7 @@ int stoint(std::string inputString) {
 	//declaring local variables
 	int counter;
 	int counter2;
-	int outputInt = -1;
+	int outputInt = -999;
 	int intcount = 0;
 	int multiplicity = 1;
 
@@ -216,7 +232,7 @@ int stoint(std::string inputString) {
 		//checking if the value is in the ascii value range of numbers 
 		if (inputString[counter] < 58 && inputString[counter] > 47) {
 			//setting outputInt to 0 so that the number are added correctly
-			if (outputInt == -1) {
+			if (outputInt == -999) {
 				outputInt = 0;
 			}
 			//this adds numbers left to right so this makes sure 1728 get added as 1000 + 700 + 20 + 8
@@ -332,11 +348,11 @@ std::string intost(int inputInt) {
 
 //display functions---------------------------------------------------------------------------------------------------------------
 
-//currently empty function that should present help information and be exitable back to where the game was at.
+//function to display help information
 void help() {
 	clear();
 	std::cout << "Cards can be choosen by entering the card number shown on the left of the console.\n";
-	std::cout << "Every card has a mana cost, effects cards always cost 2, damage/heal cards cost atleast 1 or their value divided by 3.\n";
+	std::cout << "Every card has a mana cost, effects cards always cost 1, damage/heal cards cost atleast 1 or their value divided by 3.\n";
 	std::cout << "Each card has information displayed in the order listed below.\n";
 	std::cout << "Card Type (Damage/Heal/Debuff) - Damage/Heal Value / Effect Name - Mana Cost\n";
 	std::cout << "Enemy health is random but will have a higher base value as you defeat more enemies.\n";
@@ -379,7 +395,7 @@ void menu() {
 		}
 		//if user types exit
 		else if (tempString == "exit") {
-			exit();
+			std::exit(0);
 		}
 		//if user types help
 		else if (tempString == "help") {
@@ -401,11 +417,43 @@ void display() {
 	//calls function to clear console
 	clear();
 
-	//print player and enemy health
-	std::cout << "HP: " << playerHealth[0] << "/50" << "||||||||||" << "Enemy: " << enemyHealth[0] << "/" << enemyHealth[1] << "\n";
+	//sets health back to zero if it ever goes below
+	if (playerHealth[0] < 0) {
+		playerHealth[0] = 0;
+	}
+	if (enemyHealth[0] < 0) {
+		enemyHealth[0] = 0;
+	}
 
+	//print player health
+	std::cout << "PlayerHP: [";
+	for (i = 0; i < (playerHealth[0] * 10) / playerHealth[1]; i++) {
+		std::cout << "|";
+	}
+	for (i = 0; i < 10 - ((playerHealth[0] * 10) / playerHealth[1] ); i++) {
+		std::cout << " ";
+	}
+	std::cout << "]";
+	//prints enemy health
+	std::cout << " -- EnemyHP: [";
+	for (i = 0; i < (enemyHealth[0] * 10) / enemyHealth[1]; i++) {
+		std::cout << "|";
+	}
+	for (i = 0; i < 10 - ((enemyHealth[0] * 10) / enemyHealth[1]); i++) {
+		std::cout << " ";
+	}
+	std::cout << "]";
 	//prints player mana
-	std::cout << "Mana: " << playerMana << "  |||||||||| " << "Cards: " << playerCardsArray[0][0] << "/10\n";
+	std::cout << "\nMana: [";
+	for (i = 0;i < playerMana; i++) {
+		std::cout << "|";
+	}
+	for (i = 0; i < 7 - playerMana; i++) {
+		std::cout << " ";
+	}
+	std::cout << "]";
+	//prints card count
+	std::cout << " -- Cards: " << playerCardsArray[0][0] << "/10\n\n";
 
 	//prints players cards
 	for (i = 1; i <= playerCardsArray[0][0]; i++) {
@@ -422,6 +470,8 @@ void display() {
 			break;
 		}
 	}
+
+	std::cout << "\n";
 
 	for (i = 0; i < outputLog[0][0]; i++) {
 		switch (outputLog[i + 1][0]) {
@@ -447,6 +497,7 @@ void display() {
 		}
 
 	}
+
 
 }
 
@@ -603,16 +654,12 @@ void load() {
 		playerEffects[0][0] = stoint(savefileText[10]);
 		enemyEffects[0][0] = stoint(savefileText[11]);
 
-		std::cout << "test";
-
 		//recreating arrays
 		//loops that goes for as many cards as were stored in the save file
 		loadArray(playerCardsArray, buffer, savefileText);
 		loadArray(enemyCardsArray, buffer, savefileText);
 		loadArray(playerEffects, buffer, savefileText);
 		loadArray(enemyEffects, buffer, savefileText);
-
-		std::cout << "test2";
 
 		//closes file
 		fin.close();
@@ -628,7 +675,7 @@ void load() {
 
 //generation functions------------------------------------------------------------------------------------------------------------
 
-//function to generate enemy variables generates health and card if passed 0 and only card if passed 1
+//function to generate initial enemy variables
 void generateEnemy() {
 
 	//generate random health value for enemy between 15 and 40
@@ -715,7 +762,7 @@ void discard(int cardArray[][3], int user) {
 			//sets user input to tempString
 			tempString = input(user);
 			//attempts to convert string to int
-			if (stoint(tempString) != -1) {
+			if (stoint(tempString) != -999) {
 				discardCard(cardArray, stoint(tempString));
 			}
 			//checks if string is equal to cancel if converting to int fails
@@ -743,7 +790,7 @@ void discard(int cardArray[][3], int user) {
 			display();
 			std::cout << "Please select " << 2 - temp[0] << " more cards.\n";
 		}
-		//draws new card if loop was no canceled
+		//draws new card if loop was not cancelled
 		if (temp[1] == 0) {
 			drawCard(cardArray);
 		}
@@ -757,13 +804,11 @@ void discard(int cardArray[][3], int user) {
 	}
 }
 
-//will later be reworked to draw from the bottom of the deck
 //function to restore card
 void restoreCard(int cardArray[][3]) {
 	cardArray[0][0]++;
 }
 
-//generic discard functoin
 //function used to remove a card from a deck
 void discardCard(int cardArray[][3], int cardn) {
 
@@ -778,7 +823,6 @@ void discardCard(int cardArray[][3], int cardn) {
 
 }
 
-//generic draw function
 //function used to draw a new card
 void drawCard(int cardArray[][3]) {
 
@@ -787,7 +831,6 @@ void drawCard(int cardArray[][3]) {
 
 }
 
-//generic and player play card function
 //function to play a card
 void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendlyEffects[][2], int opponentHealth[2], int opponentEffect[][2], int& mana) {
 
@@ -840,7 +883,7 @@ void playCard(int cardArray[][3], int cardn, int friendlyHealth[2], int friendly
 //function to calculate damage from effects
 void resolveEffects(int effectArray[][2], int health[2]) {
 
-	//resolving effects on player
+	//resolving effects
 	for (i = 0; i < effectArray[0][0]; i++) {
 		//gets the damage value for the debuff id associated with every debuff and subtracts that from the players health
 		health[0] -= effectsDamage[effectArray[i + 1][0]];
@@ -858,15 +901,10 @@ void resolveEffects(int effectArray[][2], int health[2]) {
 		}
 	}
 
-	//resolving effects on enemy
-	for (i = 0; i < enemyEffects[0][0]; i++) {
-
-	}
-
 
 }
 
-//function to resolve enemy combat - will be mostly replaced by playCard function - should handle enemy AI
+//function to resolve enemy combat - needs to control enemy AI
 void enemyCombat() {
 
 	//resets enemy mana
@@ -893,7 +931,7 @@ void enemyCombat() {
 
 }
 
-//function to resolve player combat - needs to be extended to include having the player choose what action to take - then resolving effects
+//function to resolve player combat
 void playerCombat() {
 
 	//resets mana
@@ -905,11 +943,7 @@ void playerCombat() {
 	//refreshes display to show enemy actions
 	display();
 
-	//resets output log
-	for (i = 0; i < outputLog[0][0]; i++) {
-		outputLog[i + 1][0] = 0;
-		outputLog[i + 1][1] = 0;
-	}
+	//resets output log counter
 	outputLog[0][0] = 0;
 
 	//player main loop
@@ -931,9 +965,7 @@ void playerCombat() {
 		debuffInfo = false;
 
 		//trys to convert input to int
-		if (stoint(tempString) != -1) {
-			temp[0] = stoint(tempString);
-		}
+		temp[0] = stoint(tempString);
 
 		//sets the inputstring to all lowercase
 		tempString = tolower(tempString);
@@ -1022,6 +1054,9 @@ void combat() {
 
 			//adds one to score
 			score += roundCounter;
+
+			//resets player health
+			playerHealth[0] = 50;
 
 			save();
 
