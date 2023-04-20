@@ -16,7 +16,7 @@
 // add enemy ai
 // redraw to five after defeating enemy
 // show enemy moves in real time
-// only all 3 cards per turn
+// only allow 3 cards per turn
 
 //creating global variables/arrays------------------------------------------------------------------------------------------------
 //temp variables for storing random values
@@ -247,6 +247,10 @@ int stoint(std::string inputString) {
 				multiplicity *= 10;
 			}
 
+		}
+		else {
+			outputInt = -999;
+			return outputInt;
 		}
 
 	}
