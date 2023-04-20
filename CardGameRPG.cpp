@@ -179,22 +179,12 @@ void clear() {
 
 //function to set get a number to x power
 int power(int number, int power) {
-	int startNumber = number;
-	
-	if (number < 0) {
-		number = -999;
-		return number;
+	int inum = num;
+	num = 1;
+	for (int i = 1; i < power; i++) {
+		num *= inum;
 	}
-	for (int counter = power; counter != 0; --counter) {
-		number *= startNumber;
-	}
-	if (power == 0) {
-		number = 1;
-	}
-
-
-	return number;
-
+	return num;
 }
 
 //function that takes string as an input and converts each uppercase character to lowercase then returns the string
@@ -241,40 +231,27 @@ std::string input(int user) {
 
 //function to convert a string to an int
 int stoint(std::string inputString) {
-
-	//sets outputInt to the failure number
-	int outputInt = -999;
-	for (int counter = 0;counter < len(inputString);counter++) {
-		if (inputString[counter] < 58 && inputString[counter] > 47) {
-			//sets outputInt to 0 if failure number is found
-			if (outputInt == -999) {
-				outputInt = 0;
-			}
-			//goes left to right adding each individual number to the apropriate power to the output int
-			outputInt += (inputString[counter] - 48) * power(10, (len(inputString) - counter - 1));
-		}
-		else {
-			//returns failure number if any char is out of range
+	int length = len(inputString);
+	int i;
+	int Pow = power(10, length);
+	int outputInt = 0;
+	for (i = 0; i < length; i++) {
+		if (inputString[i] > 57 && inputString[i] < 48) {
 			outputInt = -999;
 			return outputInt;
 		}
-
+		outputInt += (inputString[i] - 48) * Pow;
+		Pow /= 10;
 	}
-	//returns result
 	return outputInt;
 }
 
 //function to get length of a string
 int len(std::string inputstring) {
-	int counter;
-	int length = 0;
-
-	//loops and adds 1 to length under the null terminator is reached
-	for (counter = 0; inputstring[counter] != '\0'; counter++)
-	{
-		length++;
+	int i;
+	for (i = 0; inputString[i] != '\0'; i++) {
 	}
-
+	int length = i + 1;
 	return length;
 }
 
